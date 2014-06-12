@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension>
+	<_name>Axis</_name>
+	<id>org.inkscape.render.axis</id>
+	<dependency type="executable" location="extensions">render_axis.py</dependency>
+	<dependency type="executable" location="extensions">inkex.py</dependency>
+
+	<param name="tab" type="notebook">
+		<page name="tab" _gui-text="Axis range">
+			<param name="axis_from" type="float" min="-1000000" max="1000000" _gui-text="From:">0.0</param>
+			<param name="axis_to" type="float" min="-1000000" max="1000000" _gui-text="To:">100.0</param>
+			<param name="num_ticks" type="int" min="2" max="15" _gui-text="Number of ticks:">5</param>
+			<param name="sub_ticks" type="int" min="0" max="10" _gui-text="Sub-ticks:">0</param>
+			<param name="axis_title" type="string" _gui-text="Title:">Axis title</param>
+			<param name="direction" type="optiongroup" _gui-text="Direction:">
+				<_option value="horizontal">Horizontal</_option>
+				<_option value="vertical">Vertical</_option>
+			</param>
+			<param name="decimals" type="int" min="0" max="5" _gui-text="Decimal places:">1</param>
+		</page>
+	</param>
+
+	<effect>
+		<object-type>all</object-type>
+		<effects-menu>
+			<submenu _name="Render"/>
+		</effects-menu>
+	</effect>
+	<script>
+		<command reldir="extensions" interpreter="python">render_axis.py</command>
+	</script>
+</inkscape-extension>
