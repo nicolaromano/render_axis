@@ -6,6 +6,12 @@
 	<dependency type="executable" location="extensions">inkex.py</dependency>
 
 	<param name="tab" type="notebook">
+		<page name="tab" _gui-text="Style">
+			<param name="axis_offset" type="float" min="-10000" max="10000" _gui-text="Offset:">5.0</param>
+			<param name="text_font" type="string" _gui-text="Font:">Arial</param>
+			<param name="text_size_axis" type="float" min="1.0" max="1000.0" _gui-text="Ticks text size:">11</param>
+			<param name="text_size_title" type="float" min="1.0" max="1000.0" _gui-text="Axis title size:">14</param>
+		</page>
 		<page name="tab" _gui-text="Axis range">
 			<param name="axis_from" type="float" min="-1000000" max="1000000" _gui-text="From:">0.0</param>
 			<param name="axis_to" type="float" min="-1000000" max="1000000" _gui-text="To:">100.0</param>
