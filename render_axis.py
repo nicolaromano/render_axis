@@ -2,12 +2,15 @@
 '''
 Copyright (C) 2014 Nicola Romano', romano.nicola@gmail.com
 
-version 0.2
+version 0.3
+	0.3: drawing functions moved to a separate file, for use in other extensions,
+		added sub-ticks for vertical axes as well
 	0.2: added offset, ability to choose font face and size
 	0.1: first working version - produces horizontal and vertical axes
 
 Known bugs
-	When creating a vertical axis the title is inconsistently positioned in the x direction
+	Sometimes, when creating a vertical axis, the title is inconsistently positioned in the x direction
+	Positioning is much better in v0.3, but may still need some tweaking on occasion.
 
 ------------------------------------------------------------------------
 This program is free software; you can redistribute it and/or modify
@@ -27,43 +30,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 '''
 
-import inkex, simplestyle, simpletransform
+import inkex, simpletransform
 
-def draw_SVG_line(x1, y1, x2, y2, name, parent):
-	style = {
-		'fill' : 'none',
-		'stroke' : '#000000',
-		'stroke-width' : '1px',
-		'stroke-linecap' : 'round',
-		'stroke-opacity' : '1'
-		}
-	attribs = {
-		'style' : simplestyle.formatStyle(style),
-		inkex.addNS('label','inkscape') : name,
-		'd' : 'M'+str(x1)+' '+str(y1)+'L'+str(x2)+' '+str(y2)
-		}
-	
-	line = inkex.etree.SubElement(parent, inkex.addNS('path','svg'), attribs)
-	return line
-
-def draw_SVG_text(x, y, text, parent, style, angle=0):
-	attribs = {
-		'style' : simplestyle.formatStyle(style),
-		'x' : str(x),
-		'y' : str(y)
-		}
-
-	# Generate text
-	txt = inkex.etree.SubElement(parent, inkex.addNS('text'), attribs)
-	txt.text = text
-	# Rotate (if needed)
-	# We need to rotate around the text center.
-	# To achieve this we move it to the origin, rotate it and then translate it back
-	rotmatrix = simpletransform.parseTransform('translate('+str(x)+','+str(y)+')'+
-										' rotate('+str(angle)+')'+
-										' translate('+str(-x)+','+str(-y)+')')
-	simpletransform.applyTransformToNode(rotmatrix, txt)
-	return txt
+from drawing_utils import draw_SVG_line, draw_SVG_text
 
 class RenderAxis(inkex.Effect):
 	""" Constructor.
@@ -200,18 +169,30 @@ class RenderAxis(inkex.Effect):
 			draw_SVG_line(x1, y1, x2, y2, "myaxis", grp)
 			i = 0
 			tickspace = float(y2-y1)/float(num_ticks-1)
-		
+			subtickspace = tickspace/float(sub_ticks+1)
+			# The maximum length (in charachters) of a tick text
+			maxlen = 0
+			
 			for i in range(num_ticks):
 				ticktxt = ('%0.'+str(decimals)+'f') % (i*tickamount + axis_from)
+				maxlen = max(maxlen, len(ticktxt))
 				draw_SVG_line(x1, i*tickspace+y1, x1-ticklength, i*tickspace+y1, 
 					"myaxis_tick"+str(i), grp)
+				# Draw minor ticks
+				if i<(num_ticks-1): # Do not put minor ticks after the last major one!
+					for j in range(1, sub_ticks+1):
+						draw_SVG_line(x1, i*tickspace+y1+j*subtickspace, x1-subticklength, 
+							i*tickspace+y1+j*subtickspace, "myaxis_subtick"+str(i), grp)
 				# Draw text associated to main ticks
 				ticktxt = draw_SVG_text(x1-ticklength-0.3*text_size_axis, i*tickspace+y1+2.5, ticktxt, grp, font_axis_ticks)
 
-			# TODO: Calculate the width of the tick text and position the title on the left of them
-			# However, simpletransform.computeBBox does not support text (as of 2014/06/12)
-			# So another solution needs to be used
-			draw_SVG_text(x1-ticklength-text_size_title, (y1+y2)/2, text, grp, font_axis_title, -90)
+			# Calculate the width of the tick text and position the title on the left of them
+			# simpletransform.computeBBox does not support text (as of 2014/06/12)
+			# So another solution needs to be used...
+			# An approximate the position of (number of charachters * font size * 0.6) seems to be OK
+			fontsize = float(font_axis_ticks["font-size"].replace("px", ""))
+			draw_SVG_text(x1-ticklength-maxlen*fontsize*0.6, 
+				(y1+y2)/2, text, grp, font_axis_title, -90)
 
 	def effect(self):
 		if len(self.options.ids) == 0:
