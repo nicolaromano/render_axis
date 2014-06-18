@@ -2,7 +2,8 @@
 '''
 Copyright (C) 2014 Nicola Romano', romano.nicola@gmail.com
 
-version 0.1
+version 0.2
+	0.2: Added code for rect and paths. Lines now point to path code.
 	0.1: first version. Functions for drawing lines and text
 
 Known bugs
@@ -28,22 +29,24 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 import inkex, simpletransform, simplestyle
 
-def draw_SVG_line(x1, y1, x2, y2, name, parent):
-	style = {
-		'fill' : 'none',
-		'stroke' : '#000000',
-		'stroke-width' : '1px',
-		'stroke-linecap' : 'round',
-		'stroke-opacity' : '1'
-		}
+def draw_SVG_line(x1, y1, x2, y2, style, parent):
+	line = draw_SVG_path([(x1, y1), (x2, y2)], 0, style, parent)
+	return line
+
+def draw_SVG_path(points, closed, style, parent):
+	pathdesc = "M "
+	for p in points:
+		pathdesc = pathdesc + str(p[0]) + "," + str(p[1]) + " "
+	if closed == 1:
+		pathdesc = pathdesc + "Z"
+
 	attribs = {
 		'style' : simplestyle.formatStyle(style),
-		inkex.addNS('label','inkscape') : name,
-		'd' : 'M'+str(x1)+' '+str(y1)+'L'+str(x2)+' '+str(y2)
+		'd' : pathdesc
 		}
 	
-	line = inkex.etree.SubElement(parent, inkex.addNS('path','svg'), attribs)
-	return line
+	path = inkex.etree.SubElement(parent, inkex.addNS('path','svg'), attribs)
+	return path
 
 def draw_SVG_text(x, y, text, parent, style, angle=0):
 	attribs = {
@@ -64,4 +67,14 @@ def draw_SVG_text(x, y, text, parent, style, angle=0):
 	simpletransform.applyTransformToNode(rotmatrix, txt)
 	return txt
 
-
+def draw_SVG_rect(x0, y0, x1, y1, style, parent):
+	attribs = {
+		'style' : simplestyle.formatStyle(style),
+		'x' : str(min(x0, x1)),
+		'y' : str(min(y0, y1)),
+		'width' : str(abs(x1-x0)),
+		'height' : str(abs(y1-y0))
+		}
+	
+	rect = inkex.etree.SubElement(parent, inkex.addNS('rect','svg'), attribs)
+	return rect
